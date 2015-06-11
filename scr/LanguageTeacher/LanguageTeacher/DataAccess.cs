@@ -24,7 +24,7 @@ namespace LanguageTeacher
         public static void ReadFromFile(string fileName)
         {
             int i = 1;
-            foreach (string line in File.ReadAllLines(fileName))
+            foreach (string line in File.ReadAllLines(fileName, Encoding.UTF8))
             {
                 string[] elements = line.Split(new char[] { ',' });
                 if (elements.Length > 1)
@@ -34,6 +34,7 @@ namespace LanguageTeacher
                     row.Native = elements[1].Trim();
                     row.ID = i++;
                     row.Difficulty = elements.Length > 2 ? decimal.Parse(elements[2].ToString()) : 0;
+                    row.Class = elements.Length > 3 ? elements[3].Trim() : string.Empty;
                     row.Guessed = false;
                     DataSet.Words.AddWordsRow(row);
                 }
@@ -43,7 +44,7 @@ namespace LanguageTeacher
 
         internal static void WriteToFile(string path, string content)
         {
-            File.WriteAllText(path,content);
+            File.WriteAllText(path,content, Encoding.UTF8);
         }
     }
 }

@@ -24,6 +24,10 @@ namespace LanguageTeacher
         public Form1()
         {
             InitializeComponent();
+
+            comboBoxClass.Items.Add("");
+            comboBoxClass.Items.Add("con");
+
             business.Load();
             bindingSource1.DataSource = business.DataSet;
             StartGame();
@@ -31,11 +35,15 @@ namespace LanguageTeacher
 
         private void StartGame()
         {
+            wordsLeft.Clear();
             foreach (DataSet1.WordsRow row in business.DataSet.Words.Rows)
             {
                 if (!row.Guessed)
                 {
-                    wordsLeft.Add(row.ID);
+                    if (comboBoxClass.SelectedItem == null || comboBoxClass.SelectedItem == "" || comboBoxClass.SelectedItem.ToString() == row.Class)
+                    {
+                        wordsLeft.Add(row.ID);
+                    }
                 }
             }
             FillGame();
@@ -43,9 +51,19 @@ namespace LanguageTeacher
 
         private void FillGame()
         {
+            List<Decimal> usedEntries = new List<decimal>();
             listBoxOptions.Items.Clear();
+            //bool rightClass = false;
+            //while (!rightClass)
+            {
             currentPosInWordsLeft = r.Next(wordsLeft.Count-1);
+            usedEntries.Add(currentPosInWordsLeft);
             currentRow = (DataSet1.WordsRow)business.DataSet.Words.Rows[(int)wordsLeft.ElementAt(currentPosInWordsLeft)-1];
+            //if (comboBoxClass.SelectedItem == "" || comboBoxClass.SelectedItem == currentRow.Class)
+                {
+                    //rightClass = true;
+                }
+            }
             textBoxCurrentWord.Text = currentRow.Foreign;
 
             correctAnsware = r.Next(5);
@@ -58,7 +76,16 @@ namespace LanguageTeacher
                 }
                 else
                 {
-                    DataSet1.WordsRow optionRow = (DataSet1.WordsRow)business.DataSet.Words.Rows[(int)wordsLeft.ElementAt(r.Next(wordsLeft.Count-1))-1];
+                    int nextSugestion = currentPosInWordsLeft;
+                    bool enoughResources = wordsLeft.Count > 5;
+                    nextSugestion = r.Next(wordsLeft.Count - 1);
+                    while (usedEntries.Contains(nextSugestion) && enoughResources)
+                    {
+                        nextSugestion = r.Next(wordsLeft.Count - 1);
+                    }
+                    usedEntries.Add(nextSugestion);
+
+                    DataSet1.WordsRow optionRow = (DataSet1.WordsRow)business.DataSet.Words.Rows[(int)wordsLeft.ElementAt(nextSugestion)-1];
                     listBoxOptions.Items.Add(optionRow.Native);
                 }
             }
@@ -103,7 +130,7 @@ namespace LanguageTeacher
             StringBuilder sb = new StringBuilder();
             foreach (DataSet1.WordsRow row in business.DataSet.Words.Rows)
             {
-                sb.AppendLine(row.Foreign + "," + row.Native+ "," + row.Difficulty);
+                sb.AppendLine(row.Foreign + "," + row.Native + "," + (row.Difficulty != null ? row.Difficulty : 0) + "," + (row.Class !=null ? row.Class : ""));
             }
             business.Save(sb.ToString());
         }
@@ -120,7 +147,20 @@ namespace LanguageTeacher
 
         private void dataGridView1_UserAddedRow(object sender, DataGridViewRowEventArgs e)
         {
-            ((DataSet1.WordsRow)((DataRowView)bindingSource1.Current).Row).ID = bindingSource1.Count + 1;
+            DataSet1.WordsRow row = (DataSet1.WordsRow)((DataRowView)bindingSource1.Current).Row;
+            row.ID = bindingSource1.Count + 1;
+            row.Class = "";
+            row.Difficulty = 0;
+        }
+
+        private void comboBoxClass_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            StartGame();
+        }
+
+        private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
